@@ -83,11 +83,11 @@ public class TeleopTest extends LinearOpMode {
             leftDrive.setPower(leftPower);
             rightDrive.setPower(rightPower);
             intakeMotor.setPower(1);
-            System.out.println("hello");
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+            telemetry.addData("hello", 123);
             telemetry.update();
         }
     }
