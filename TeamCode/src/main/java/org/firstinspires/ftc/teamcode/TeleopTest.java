@@ -12,8 +12,8 @@ public class TeleopTest extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
+//    private DcMotor leftDrive = null;
+//    private DcMotor rightDrive = null;
     private DcMotor intakeMotor = null;
 
     // Function to turn right
@@ -44,15 +44,15 @@ public class TeleopTest extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+//        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
+//        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
         intakeMotor = hardwareMap.get(DcMotor.class, "intake");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
+//        leftDrive.setDirection(DcMotor.Direction.REVERSE);
+//        rightDrive.setDirection(DcMotor.Direction.FORWARD);
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
 
         // Wait for the game to start (driver presses START)
@@ -81,8 +81,8 @@ public class TeleopTest extends LinearOpMode {
             // (i deleted the code that used to be over here because i didn't like it)
 
             // Send calculated power to wheels
-            leftDrive.setPower(leftPower);
-            rightDrive.setPower(rightPower);
+//            leftDrive.setPower(leftPower);
+//            rightDrive.setPower(rightPower);
             intakeMotor.setPower(1);
 
             // Show the elapsed game time and wheel power.
