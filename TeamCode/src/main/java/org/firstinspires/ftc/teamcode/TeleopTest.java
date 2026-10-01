@@ -15,6 +15,26 @@ public class TeleopTest extends LinearOpMode {
     private DcMotor rightDrive = null;
     private DcMotor intakeMotor = null;
 
+    // Function to turn right
+    private void turnRight() {
+
+    }
+
+    // Function to turn left
+    private void turnLeft() {
+
+    }
+
+    // Function to go forward
+    private void goForward() {
+
+    }
+
+    // Function to go backward
+    private void goBackward() {
+
+    }
+
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -63,6 +83,7 @@ public class TeleopTest extends LinearOpMode {
             leftDrive.setPower(leftPower);
             rightDrive.setPower(rightPower);
             intakeMotor.setPower(1);
+            System.out.println("hello");
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
