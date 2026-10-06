@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.CRServo;
 
 @TeleOp(name="Basic: Linear OpMode", group="Linear OpMode")
 public class TeleopTest extends LinearOpMode {
@@ -15,6 +16,7 @@ public class TeleopTest extends LinearOpMode {
 //    private DcMotor leftDrive = null;
 //    private DcMotor rightDrive = null;
     private DcMotor intakeMotor = null;
+    private CRServo leftIntakeServo = null;
 
     // Function to turn right
     private void turnRight() {
@@ -47,6 +49,8 @@ public class TeleopTest extends LinearOpMode {
 //        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
 //        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
         intakeMotor = hardwareMap.get(DcMotor.class, "intake");
+        leftIntakeServo = hardwareMap.get(CRServo.class, "leftintake");
+
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
@@ -54,6 +58,7 @@ public class TeleopTest extends LinearOpMode {
 //        leftDrive.setDirection(DcMotor.Direction.REVERSE);
 //        rightDrive.setDirection(DcMotor.Direction.FORWARD);
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
+        leftIntakeServo.setDirection(CRServo.Direction.FORWARD);
 
         // Wait for the game to start (driver presses START)
         waitForStart();
@@ -61,7 +66,8 @@ public class TeleopTest extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-
+            // try running servo (doesn't work even though i literally spent three hours working on it)
+            leftIntakeServo.setPower(1);
             // Setup a variable for each drive wheel to save power level for telemetry
             double leftPower;
             double rightPower;
@@ -81,14 +87,15 @@ public class TeleopTest extends LinearOpMode {
             // (i deleted the code that used to be over here because i didn't like it)
 
             // Send calculated power to wheels
-//            leftDrive.setPower(leftPower);
-//            rightDrive.setPower(rightPower);
+            // leftDrive.setPower(leftPower);
+            // rightDrive.setPower(rightPower);
+
+            // run passive intake motor too while we're at it
             intakeMotor.setPower(1);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-            telemetry.addData("hello", 123);
             telemetry.update();
         }
     }
