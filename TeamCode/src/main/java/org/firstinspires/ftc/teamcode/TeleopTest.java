@@ -20,6 +20,8 @@ public class TeleopTest extends LinearOpMode {
     private DcMotor intakeMotor = null;
     private CRServo leftIntakeServo = null;
 
+    private DcMotor flyWheel = null;
+
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -34,6 +36,7 @@ public class TeleopTest extends LinearOpMode {
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
         intakeMotor = hardwareMap.get(DcMotor.class, "intake");
         leftIntakeServo = hardwareMap.get(CRServo.class, "leftintake");
+        flyWheel = hardwareMap.get(DcMotor.class, "shooter");
 
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
@@ -45,6 +48,7 @@ public class TeleopTest extends LinearOpMode {
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
         leftIntakeServo.setDirection(CRServo.Direction.FORWARD);
+        flyWheel.setDirection(DcMotor.Direction.FORWARD);
 
         // Wait for the game to start (driver presses START)
         waitForStart();
@@ -64,6 +68,15 @@ public class TeleopTest extends LinearOpMode {
 
             if (gamepad2.left_trigger > 0.2) {
                 intakeMotor.setPower(1);
+            }
+            else {
+                intakeMotor.setPower(0);
+            }
+            if (gamepad2.right_trigger > 0.2) {
+                flyWheel.setPower(1);
+            }
+            else {
+                flyWheel.setPower(0);
             }
 
             double fLeftPow = Range.clip(drive + turn + strafe, -1, 1);
