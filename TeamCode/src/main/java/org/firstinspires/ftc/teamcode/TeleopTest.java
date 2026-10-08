@@ -13,30 +13,12 @@ public class TeleopTest extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-//    private DcMotor leftDrive = null;
-//    private DcMotor rightDrive = null;
+    private DcMotor frontRightDrive = null;
+    private DcMotor frontLeftDrive = null;
+    private DcMotor backRightDrive = null;
+    private DcMotor backLeftDrive = null;
     private DcMotor intakeMotor = null;
     private CRServo leftIntakeServo = null;
-
-    // Function to turn right
-    private void turnRight() {
-
-    }
-
-    // Function to turn left
-    private void turnLeft() {
-
-    }
-
-    // Function to go forward
-    private void goForward() {
-
-    }
-
-    // Function to go backward
-    private void goBackward() {
-
-    }
 
     @Override
     public void runOpMode() {
@@ -46,18 +28,22 @@ public class TeleopTest extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-//        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-//        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
-        intakeMotor = hardwareMap.get(DcMotor.class, "intake");
+        frontLeftDrive  = hardwareMap.get(DcMotor.class, "front_left_drive");
+        frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
+        backLeftDrive  = hardwareMap.get(DcMotor.class, "back_left_drive");
+        backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
+//        intakeMotor = hardwareMap.get(DcMotor.class, "intake");
         leftIntakeServo = hardwareMap.get(CRServo.class, "leftintake");
 
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-//        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-//        rightDrive.setDirection(DcMotor.Direction.FORWARD);
-        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
+        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+//        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
         leftIntakeServo.setDirection(CRServo.Direction.FORWARD);
 
         // Wait for the game to start (driver presses START)
@@ -68,34 +54,29 @@ public class TeleopTest extends LinearOpMode {
         while (opModeIsActive()) {
             // try running servo (doesn't work even though i literally spent three hours working on it)
             leftIntakeServo.setPower(1);
-            // Setup a variable for each drive wheel to save power level for telemetry
-            double leftPower;
-            double rightPower;
 
             // Choose to drive using either Tank Mode, or POV Mode
             // Comment out the method that's not used.  The default below is POV.
 
-            // POV Mode uses left stick to go forward, and right stick to turn.
-            // - This uses basic math to combine motions and is easier to drive straight.
             double drive = -gamepad1.left_stick_y;
-            double turn  =  gamepad1.right_stick_x;
-            leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
-            rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
+            double turn = gamepad1.right_stick_x;
+            double strafe = gamepad1.left_stick_x;
 
-            // Tank Mode uses one stick to control each wheel.
+            double fLeftPow = Range.clip(drive + turn + strafe, -1, 1);
+            double bLeftPow = Range.clip(drive + turn - strafe, -1, 1);
+            double fRightPow = Range.clip(drive - turn - strafe, -1, 1);
+            double bRightPow = Range.clip(drive - turn + strafe, -1, 1);
 
-            // (i deleted the code that used to be over here because i didn't like it)
-
-            // Send calculated power to wheels
-            // leftDrive.setPower(leftPower);
-            // rightDrive.setPower(rightPower);
+            frontLeftDrive.setPower(fLeftPow);
+            backLeftDrive.setPower(bLeftPow);
+            frontRightDrive.setPower(fRightPow);
+            backRightDrive.setPower(bRightPow);
 
             // run passive intake motor too while we're at it
-            intakeMotor.setPower(1);
+//            intakeMotor.setPower(1);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
             telemetry.update();
         }
     }
