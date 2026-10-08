@@ -32,7 +32,7 @@ public class TeleopTest extends LinearOpMode {
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
         backLeftDrive  = hardwareMap.get(DcMotor.class, "back_left_drive");
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
-//        intakeMotor = hardwareMap.get(DcMotor.class, "intake");
+        intakeMotor = hardwareMap.get(DcMotor.class, "intake");
         leftIntakeServo = hardwareMap.get(CRServo.class, "leftintake");
 
 
@@ -43,7 +43,7 @@ public class TeleopTest extends LinearOpMode {
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
-//        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
+        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
         leftIntakeServo.setDirection(CRServo.Direction.FORWARD);
 
         // Wait for the game to start (driver presses START)
@@ -62,6 +62,10 @@ public class TeleopTest extends LinearOpMode {
             double turn = gamepad1.right_stick_x;
             double strafe = gamepad1.left_stick_x;
 
+            if (gamepad2.left_trigger > 0.2) {
+                intakeMotor.setPower(1);
+            }
+
             double fLeftPow = Range.clip(drive + turn + strafe, -1, 1);
             double bLeftPow = Range.clip(drive + turn - strafe, -1, 1);
             double fRightPow = Range.clip(drive - turn - strafe, -1, 1);
@@ -71,9 +75,6 @@ public class TeleopTest extends LinearOpMode {
             backLeftDrive.setPower(bLeftPow);
             frontRightDrive.setPower(fRightPow);
             backRightDrive.setPower(bRightPow);
-
-            // run passive intake motor too while we're at it
-//            intakeMotor.setPower(1);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
