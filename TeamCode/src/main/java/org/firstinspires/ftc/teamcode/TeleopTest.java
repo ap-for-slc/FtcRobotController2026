@@ -19,10 +19,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagSingleDetection;
 import java.util.List;
 import java.lang.Math;
 
-@TeleOp(name="Basic: Linear OpMode", group="Linear OpMode")
+@TeleOp(name="TELEOPTELEOP", group="Linear OpMode")
 public class TeleopTest extends LinearOpMode {
-
-    // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor frontRightDrive = null;
     private DcMotor frontLeftDrive = null;
@@ -37,14 +35,50 @@ public class TeleopTest extends LinearOpMode {
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
 
+    private void driveToPos(int pos) {
+        // set target as current position + position to go to
+        frontLeftDrive.setTargetPosition(frontLeftDrive.getCurrentPosition() + pos);
+        frontRightDrive.setTargetPosition(frontRightDrive.getCurrentPosition() + pos);
+        backLeftDrive.setTargetPosition(backLeftDrive.getCurrentPosition() + pos);
+        backRightDrive.setTargetPosition(backRightDrive.getCurrentPosition() + pos);
+
+        // get it to run by position
+        frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // put it at full throttle until it gets there
+        frontLeftDrive.setPower(1);
+        frontRightDrive.setPower(1);
+        backLeftDrive.setPower(1);
+        backRightDrive.setPower(1);
+
+        while (opModeIsActive() && (
+                frontLeftDrive.isBusy() || frontRightDrive.isBusy() || backLeftDrive.isBusy() || backRightDrive.isBusy()
+        ) && !gamepad1.back) {
+            // wait for ts to finish
+            // click "back" on the controller if it doesn't work to switch back to manual mode
+        }
+
+        // turn the motors off and set the motor mode back
+        frontLeftDrive.setPower(0);
+        frontRightDrive.setPower(0);
+        backLeftDrive.setPower(0);
+        backRightDrive.setPower(0);
+
+        frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        // Initialize the hardware variables. Note that the strings used here as parameters
-        // to 'get' must correspond to the names assigned during the robot configuration
-        // step (using the FTC Robot Controller app on the phone).
+
         frontLeftDrive  = hardwareMap.get(DcMotor.class, "front_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
         backLeftDrive  = hardwareMap.get(DcMotor.class, "back_left_drive");
@@ -54,9 +88,6 @@ public class TeleopTest extends LinearOpMode {
         flyWheel = hardwareMap.get(DcMotor.class, "shooter");
 
 
-        // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
-        // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
-        // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -68,6 +99,12 @@ public class TeleopTest extends LinearOpMode {
         // zero out encoder and then set it up or smthn
         frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         aprilTag = new AprilTagProcessor.Builder().build();
         VisionPortal.Builder builder = new VisionPortal.Builder();
@@ -109,20 +146,10 @@ public class TeleopTest extends LinearOpMode {
                 telemetry.addLine("no april tags detected");
             } else {
                 telemetry.addData("closest april tag is ", closestPos);
-
-                if (closestPos.z < 15 && gamepad1.a) {
-                    frontLeftDrive.setPower(0.2);
-                    frontRightDrive.setPower(0.2);
-                    backLeftDrive.setPower(0.2);
-                    backRightDrive.setPower(0.2);
-                }
             }
 
             // try running servo (doesn't work even though i literally spent three hours working on it)
             leftIntakeServo.setPower(1);
-
-            // Choose to drive using either Tank Mode, or POV Mode
-            // Comment out the method that's not used.  The default below is POV.
 
             double drive = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
@@ -142,6 +169,14 @@ public class TeleopTest extends LinearOpMode {
                 flyWheel.setPower(0);
             }
 
+            // auto stuff
+            if (gamepad1.dpad_up) {
+                driveToPos(5000);
+            } else if (gamepad1.dpad_down) {
+                driveToPos(-5000);
+            }
+
+            // driving code
             double fLeftPow = Range.clip(drive + turn + strafe, -1, 1);
             double bLeftPow = Range.clip(drive + turn - strafe, -1, 1);
             double fRightPow = Range.clip(drive - turn - strafe, -1, 1);
@@ -152,13 +187,16 @@ public class TeleopTest extends LinearOpMode {
             frontRightDrive.setPower(fRightPow);
             backRightDrive.setPower(bRightPow);
 
-            // Show the elapsed game time and wheel power.
+
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("motor pos", frontLeftDrive.getCurrentPosition());
+            telemetry.addData("left motor pos", frontLeftDrive.getCurrentPosition());
+            telemetry.addData("right motor pos", frontRightDrive.getCurrentPosition());
             telemetry.update();
         }
     }
 }
+
+// class for calcing (short for calculating btw) stuff in 3D
 class Vector3 {
     public double x;
     public double y;
