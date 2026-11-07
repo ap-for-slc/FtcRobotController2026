@@ -28,7 +28,8 @@ public class TeleopTest extends LinearOpMode {
     private DcMotor backRightDrive = null;
     private DcMotor backLeftDrive = null;
     private DcMotor intakeMotor = null;
-    private CRServo leftIntakeServo = null;
+    private DcMotor leftIntakeMotor = null;
+    private DcMotor rightIntakeMotor = null;
 
     private DcMotor flyWheel = null;
     private Servo leftFlyWheelServo = null;
@@ -41,30 +42,34 @@ public class TeleopTest extends LinearOpMode {
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
 
+    private enum Directions {
+        FORWARD, REVERSE, LEFT, RIGHT
+    }
 
-    private void driveToPos(int leftPos, int rightPos) {
-        // set target as current position + position to go to
-        backLeftDrive.setTargetPosition(backLeftDrive.getCurrentPosition() - leftPos);
-        backRightDrive.setTargetPosition(backRightDrive.getCurrentPosition() + rightPos);
+    private void driveMotors(double drive, double turn, double strafe) {
+        double fLeftPow = Range.clip(drive + turn + strafe, -1, 1);
+        double bLeftPow = Range.clip(drive + turn - strafe, -1, 1);
+        double fRightPow = Range.clip(drive - turn - strafe, -1, 1);
+        double bRightPow = Range.clip(drive - turn + strafe, -1, 1);
 
-        // get it to run by position
-        backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeftDrive.setPower(fLeftPow);
+        backLeftDrive.setPower(bLeftPow);
+        frontRightDrive.setPower(fRightPow);
+        backRightDrive.setPower(bRightPow);
+    }
+    private void driveToPos(Directions dir, int pos) {
+        int leftTarget = -backLeftDrive.getCurrentPosition() + pos;
+        int rightTarget = backRightDrive.getCurrentPosition() + pos;
 
-        // put it at full throttle until it gets there
-        frontLeftDrive.setPower(0.2);
-        frontRightDrive.setPower(0.2);
-        backLeftDrive.setPower(0.2);
-        backRightDrive.setPower(0.2);
+        driveMotors(0.1, 0, 0);
 
         while (opModeIsActive() && (
-                backLeftDrive.isBusy() || backRightDrive.isBusy()
+                leftTarget > backLeftDrive.getCurrentPosition() ||
+                rightTarget > backRightDrive.getCurrentPosition()
         ) && !gamepad1.back) {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("left motor pos", backLeftDrive.getCurrentPosition());
             telemetry.addData("right motor pos", backRightDrive.getCurrentPosition());
-            telemetry.addData("left target", backLeftDrive.getTargetPosition());
-            telemetry.addData("right target", backRightDrive.getTargetPosition());
             telemetry.addData("GIGA AUTO 3000", "ENGAGED");
             telemetry.update();
             idle();
@@ -77,9 +82,6 @@ public class TeleopTest extends LinearOpMode {
         frontRightDrive.setPower(0);
         backLeftDrive.setPower(0);
         backRightDrive.setPower(0);
-
-        backLeftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backRightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     @Override
@@ -93,18 +95,19 @@ public class TeleopTest extends LinearOpMode {
         backLeftDrive  = hardwareMap.get(DcMotor.class, "DriveBL");
         backRightDrive = hardwareMap.get(DcMotor.class, "DriveBR");
         intakeMotor = hardwareMap.get(DcMotor.class, "intake");
-        leftIntakeServo = hardwareMap.get(CRServo.class, "leftintake");
+        leftIntakeMotor = hardwareMap.get(DcMotor.class, "leftintake");
+        rightIntakeMotor = hardwareMap.get(DcMotor.class, "rightintake");
         flyWheel = hardwareMap.get(DcMotor.class, "shooter");
         leftFlyWheelServo = hardwareMap.get(Servo.class, "leftflywheel");
         rightFlyWheelServo = hardwareMap.get(Servo.class, "rightflywheel");
-
 
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
-        leftIntakeServo.setDirection(CRServo.Direction.FORWARD);
+        leftIntakeMotor.setDirection(DcMotor.Direction.FORWARD);
+        rightIntakeMotor.setDirection(DcMotor.Direction.FORWARD);
         flyWheel.setDirection(DcMotor.Direction.FORWARD);
 
         // zero out encoder and then set it up or smthn
@@ -159,8 +162,6 @@ public class TeleopTest extends LinearOpMode {
 //                telemetry.addData("closest april tag is ", closestPos);
 //            }
 
-            // try running servo (doesn't work even though i literally spent three hours working on it)
-            leftIntakeServo.setPower(1);
 
             double drive = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
@@ -197,29 +198,24 @@ public class TeleopTest extends LinearOpMode {
             } else {
                 yJustPressed = false;
             }
+            if (gamepad2.dpad_left) {
+                leftIntakeMotor.setPower(1);
+                rightIntakeMotor.setPower(-1);
+            } else if (gamepad2.dpad_right) {
+                leftIntakeMotor.setPower(-1);
+                rightIntakeMotor.setPower(1);
+            } else {
+                leftIntakeMotor.setPower(0);
+                rightIntakeMotor.setPower(0);
+            }
+
 
             // auto stuff
             if (gamepad1.dpad_up) {
-                driveToPos(5000, 5000);
-            } else if (gamepad1.dpad_down) {
-                driveToPos(-5000, -5000);
-            } else if (gamepad1.dpad_left) {
-                driveToPos(0, 5000);
-            } else if (gamepad1.dpad_right) {
-                driveToPos(5000, 0);
+                driveToPos(Directions.FORWARD, 500);
             }
 
-            // driving code
-            double fLeftPow = Range.clip(drive + turn + strafe, -1, 1);
-            double bLeftPow = Range.clip(drive + turn - strafe, -1, 1);
-            double fRightPow = Range.clip(drive - turn - strafe, -1, 1);
-            double bRightPow = Range.clip(drive - turn + strafe, -1, 1);
-
-            frontLeftDrive.setPower(fLeftPow);
-            backLeftDrive.setPower(bLeftPow);
-            frontRightDrive.setPower(fRightPow);
-            backRightDrive.setPower(bRightPow);
-
+            driveMotors(drive, turn, strafe);
 
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("left motor pos", backLeftDrive.getCurrentPosition());
